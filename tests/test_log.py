@@ -128,12 +128,15 @@ def test_package_script_names_are_not_logged(tmp_path, monkeypatch):
 
 def test_tool_name_is_logged_in_clear_and_cut_to_64_chars(tmp_path, monkeypatch):
     _isolate(tmp_path, monkeypatch)
-    for name in ("Bash", None, "", "   ", "mcp__" + "x" * 100):
+    for name in ("Bash", None, "", "   ", "mcp__" + "x" * 100, "Bash\n\x1b[31mx", "\n\x1b\t", "\x00" + "y" * 70):
         log_verdict(action="allow", risk=0.1, policy_id="general", reason="r", mock=True, source="tool",
                     latency_ms=1.0, tool_call="ls", tool_name=name)
     names = [e["tool_name"] for e in load_entries(tmp_path / "v.jsonl")]
     assert names[:4] == ["Bash", None, None, None]                     # absent or blank is logged as null
     assert names[4] == ("mcp__" + "x" * 100)[:lg.TOOL_NAME_MAX] and len(names[4]) == 64
+    assert names[5] == "Bash[31mx"                                     # no newline / ESC reaches the log or stats
+    assert names[6] is None                                            # only control characters is blank
+    assert names[7] == "y" * 64                                        # dropped before the 64-char cut
 
 
 def test_stats_count_the_top_five_tools(tmp_path, monkeypatch, capsys):

@@ -44,10 +44,12 @@ TOOL_NAME_MAX = 64
 
 
 def _clean_tool_name(tool_name: str | None) -> str | None:
-    """The tool name as it is logged: stripped and cut to TOOL_NAME_MAX characters, or None when there is none."""
-    if not tool_name or not tool_name.strip():
+    """The tool name as it is logged: non-printable characters (newlines, escape sequences' ESC, ...) dropped,
+    then stripped and cut to TOOL_NAME_MAX characters, or None when nothing is left."""
+    if not tool_name:
         return None
-    return tool_name.strip()[:TOOL_NAME_MAX]
+    name = "".join(ch for ch in tool_name if ch.isprintable()).strip()
+    return name[:TOOL_NAME_MAX] or None
 
 
 def log_verdict(
