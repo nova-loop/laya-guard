@@ -8,8 +8,49 @@ All notable changes to this project are documented here. Versions follow
 ### Added
 
 - **`POST /guard` accepts an optional `tool_name`** (`Bash`, `Edit`, an MCP tool, …). It is logged in clear as
-  `"tool_name"` in `verdicts.jsonl` (cut to 64 characters, `null` when absent) and `laya-guard stats` shows the top
-  five tools, so you can tell which tools the blocks come from. The adapters don't send it yet.
+  `"tool_name"` in `verdicts.jsonl` (non-printable characters dropped, cut to 64 characters, `null` when absent) and
+  `laya-guard stats` shows the top five tools, so you can tell which tools the blocks come from. The adapters don't
+  send it yet.
+
+## [0.4.1] - 2026-10-14
+
+The dashboard gets a Simulation view: the pipeline as a small 3D diorama you can watch, an attack lab that judges eight
+scenarios with the real evaluator, and AI scenarios, where you describe any situation and the coding agent you already
+have plays it out in a virtual world while laya-guard judges every command it proposes. Nothing in it is ever run.
+
+### Added
+
+- **Simulation view** in the dashboard (`/dashboard#/simulation`): the pipeline as an interactive isometric miniature
+  built with three.js in the page (terminals, command queue, policy gate with one column per policy, the Laya engine, the
+  decision gate, and the execution, review and incident zones). Calls from the verdict log fly through as they arrive
+  (`RECORDED`); the engine is only visited when the model was really called. Real, mock and simulated data carry different
+  labels everywhere (`REAL`, `MOCK EVALUATOR`, `HEURISTIC FALLBACK`, `SIMULATION DATA`, `RECORDED`).
+- **Attack lab**: eight predefined scenarios judged by the real evaluator and never executed or logged. Each shows the
+  verdict, risk score, policy and reason as returned, which relevant policy checks matched, who decided and the stages
+  passed, with a comparison table. `GET /api/sim/config` and `POST /api/sim/evaluate/<scenario>` (NDJSON: a line per
+  pipeline event, then the result; same token, origin and JSON checks as the installers; only scenarios, never free text).
+- Inspector, replay (play, pause, restart, step, scrub), a guided tour, camera controls (pan, rotate, zoom, buttons and
+  keyboard), reduced-motion support, and a text fallback when WebGL isn't available.
+- `guard.judge_traced()`: `judge()` that reports each stage (segment, policy, package script, engine) to an observer as it
+  happens. Nothing is recorded unless an observer is installed, and the verdict is unchanged.
+
+- **AI scenarios** (Simulation, "AI scenario" tab): describe any situation in the window and the coding agent you already
+  have (Claude Code, headless, all tools off, under your own login; no API key, hosted service or Ollama) interprets it,
+  builds a virtual repository and plays the coding agent step by step. Each action is one of a fixed list, validated, and
+  applied to an in-memory world; each proposed command is judged by the real evaluator and the verdict is fed back. Nothing
+  is run, logged or alerted. Pause, resume, step, stop, run again, replay, a history of actions and decisions, held commands
+  you approve or deny, and an outcome card that keeps the run's facts apart from the AI's account. The 3D scene plays the
+  actual event sequence (the agent walks to the repository, a command leaves the terminal and waits for the real verdict).
+  Limits: steps, time, cost, files. Consent is asked before first use. Routes: `/api/sim/ai/{status,consent,runs}`.
+- `laya_guard.agentbridge` (adapter registry; Claude Code adapter) and `laya_guard.aisim` (the engine).
+- A package script that was read and matched nothing now says so in the trace (`package-script`, clean), instead of
+  looking like a script that was never read.
+
+### Changed
+
+- The dashboard serves the simulation's modules and a bundled, tree-shaken three.js r186 (MIT) from `/static/` inside the
+  package (read-only, `.js`/`.css`/`.txt` only). Its CSP now lists `'self'` for scripts and styles next to the nonce;
+  nothing external is allowed. Rebuild the bundle with `scripts/vendor_three.sh`.
 
 ## [0.4.0] - 2026-10-13
 
@@ -339,7 +380,8 @@ a verdict.
   Claude Code PreToolUse hook, local redacted telemetry, Korean 30-case eval,
   AgentDojo judge-level eval, E2E rollout harness.
 
-[Unreleased]: https://github.com/scs0209/laya-guard/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/scs0209/laya-guard/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/scs0209/laya-guard/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/scs0209/laya-guard/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/scs0209/laya-guard/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/scs0209/laya-guard/compare/v0.2.5...v0.2.6

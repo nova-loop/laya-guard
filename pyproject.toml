@@ -1,6 +1,6 @@
 [project]
 name = "laya-guardrail"
-version = "0.4.0"
+version = "0.4.1"
 description = "Free local guardrail for AI coding agents: every tool_call judged on-device (regex + Laya model) as allow / review / block"
 readme = "README.md"
 license = { text = "MIT" }
@@ -37,7 +37,7 @@ dev = ["pytest"]
 laya-guard = "laya_guard.cli:main"
 
 [tool.setuptools.package-data]
-laya_guard = ["*.yaml", "*.html", "hooks/*"]
+laya_guard = ["*.yaml", "*.html", "hooks/*", "static/sim/*", "static/vendor/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
