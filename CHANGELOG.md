@@ -5,6 +5,12 @@ All notable changes to this project are documented here. Versions follow
 
 ## [Unreleased]
 
+### Added
+
+- **`POST /guard` accepts an optional `tool_name`** (`Bash`, `Edit`, an MCP tool, …). It is logged in clear as
+  `"tool_name"` in `verdicts.jsonl` (cut to 64 characters, `null` when absent) and `laya-guard stats` shows the top
+  five tools, so you can tell which tools the blocks come from. The adapters don't send it yet.
+
 ## [0.4.0] - 2026-10-13
 
 An outage no longer turns the guard off. With the server down, what it can't judge is asked about or blocked instead
